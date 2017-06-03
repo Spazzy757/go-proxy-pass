@@ -1,0 +1,33 @@
+version: '3'
+services:
+# Go Proxy container
+  go-proxy:
+    build: ./
+    container_name: go-proxy
+    ports:
+      - "8400:8400"
+    volumes:
+      - ./src/:/go/src/app
+    links:
+      - mongodb
+    depends_on:
+      - mongodb
+    networks:
+      - go-proxy-network
+# Mongo DB Container
+  mongodb:
+        image: mongo:latest
+        container_name: mongodb
+        command: mongod --smallfiles --logpath=/dev/null # --quiet
+        environment:
+          - MONGO_DATA_DIR=/data/db
+          - MONGO_LOG_DIR=/dev/null
+        ports:
+          - 27017:27017
+        volumes:
+          - ./data/db:/data/db
+        networks:
+          - go-proxy-network
+networks:
+  go-proxy-network:
+    driver: bridge

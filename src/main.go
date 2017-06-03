@@ -12,6 +12,8 @@ import (
 
 type Registry map[string][]string
 
+var port = "8600"
+
 func extractNameVersion(target *url.URL) (name, version string, err error) {
 	path := target.Path
 	// Trim the leading `/`
@@ -40,12 +42,14 @@ func NewMultipleHostReverseProxy(reg Registry) *httputil.ReverseProxy {
 			return
 		}
 		endpoints := reg[name+"/"+version]
+
 		if len(endpoints) == 0 {
 			log.Printf("Service/Version not found")
 			return
 		}
 		req.URL.Scheme = "http"
 		req.URL.Host = endpoints[rand.Int()%len(endpoints)]
+		fmt.Println(req.Body)
 	}
 	return &httputil.ReverseProxy{
 		Director: director,
@@ -54,7 +58,8 @@ func NewMultipleHostReverseProxy(reg Registry) *httputil.ReverseProxy {
 
 func main() {
 	proxy := NewMultipleHostReverseProxy(Registry{
-		"serviceone/v1": {"127.0.0.1:8000"},
+		"serviceone/v1": {"127.0.0.1:8600"},
 	})
+	fmt.Println("Server started on port: ", port)
 	log.Fatal(http.ListenAndServe(":8400", proxy))
 }
